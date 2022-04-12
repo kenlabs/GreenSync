@@ -1,0 +1,29 @@
+type Location struct {
+    Date String
+    Epoch Int
+    MinerLocations [MinerLocation]
+}
+
+type MinerLocation struct {
+    Miner String
+    Region String
+    Long Float
+    Lat Float
+    NumLocations Int
+    Country String
+    City String
+    SubDiv1 String
+}
+
+type LocationMeta struct {
+	# Previous metadata.
+	PreviousID nullable Link_Metadata
+    # Provider ID of the metadata
+    Provider String
+	# data
+	Payload   Location
+	# metadata signature.
+    Signature Bytes
+}
+
+type Link_Metadata &LocationMeta
