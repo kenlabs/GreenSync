@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"PandoWatch/pkg/types/schema/location"
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/ipfs/go-cid"
@@ -9,7 +10,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipld/go-ipld-prime"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
-	"net/http"
+	"io/ioutil"
 	"strconv"
 	"time"
 )
@@ -69,24 +70,36 @@ func (m *Monitor) monitor() {
 		default:
 		}
 
-		res, err := http.Get(m.Url)
-		if err != nil {
-			log.Errorf("failed to get json from http, err: %v", err)
-			continue
-		}
-		if res.StatusCode != http.StatusOK {
-			log.Errorf("wrong http status code: %d", res.StatusCode)
-			continue
-		}
+		//res, err := http.Get(m.Url)
+		//if err != nil {
+		//	log.Errorf("failed to get json from http, err: %v", err)
+		//	continue
+		//}
+		//if res.StatusCode != http.StatusOK {
+		//	log.Errorf("wrong http status code: %d", res.StatusCode)
+		//	continue
+		//}
 		var locationRes location.Location
-		err = json.NewDecoder(res.Body).Decode(&locationRes)
+		//err = json.NewDecoder(res.Body).Decode(&locationRes)
+		//if err != nil {
+		//	log.Errorf("failed to read json from http body, err: %v", err)
+		//	continue
+		//}
+		//if locationRes.Epoch == m.Epoch && m.Epoch != 0 {
+		//	continue
+		//}
+
+		//todo test
+		f, err := ioutil.ReadFile("/Users/zxh/ken-labs/PandoWatch/test/data.json")
 		if err != nil {
-			log.Errorf("failed to read json from http body, err: %v", err)
+			panic(err.Error())
+		}
+		err = json.NewDecoder(bytes.NewReader(f)).Decode(&locationRes)
+		if err != nil {
+			log.Errorf("failed to read test json data, err: %v", err)
 			continue
 		}
-		if locationRes.Epoch == m.Epoch && m.Epoch != 0 {
-			continue
-		}
+
 		m.GenerateAndUpdate(m.ctx, &locationRes)
 	}
 }

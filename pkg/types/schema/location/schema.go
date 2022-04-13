@@ -25,8 +25,8 @@ var (
 
 	// MetadataPrototype represents the IPLD node prototype of Metadata.
 	// See: bindnode.Prototype.
-	LocationPrototype schema.TypedPrototype
-	//LocationMetaPrototype schema.TypedPrototype
+	LocationPrototype     schema.TypedPrototype
+	LocationMetaPrototype schema.TypedPrototype
 	//MinerLocationPrototype schema.TypedPrototype
 	//go:embed schema.ipldsch
 	schemaBytes []byte
@@ -38,7 +38,7 @@ func init() {
 		panic(fmt.Errorf("failed to load schema: %w", err))
 	}
 	LocationPrototype = bindnode.Prototype((*Location)(nil), typeSystem.TypeByName("Location"))
-	//LocationMetaPrototype = bindnode.Prototype((*LocationMeta)(nil), typeSystem.TypeByName("LocationMeta"))
+	LocationMetaPrototype = bindnode.Prototype((*LocationMeta)(nil), typeSystem.TypeByName("LocationMeta"))
 	//MinerLocationPrototype = bindnode.Prototype((*MinerLocation)(nil), typeSystem.TypeByName("MinerLocation"))
 
 }

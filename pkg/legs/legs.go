@@ -130,9 +130,8 @@ func (p *ProviderLegs) UpdateLocationToPando(c cid.Cid) error {
 		log.Errorf("failed to unmarshal location from ipld node, err : %v", err)
 		return nil
 	}
-	link := ipld.Link(cidlink.Link{Cid: p.latestMeta})
 	meta := &location.LocationMeta{
-		PreviousID: &link,
+		PreviousID: nil,
 		Provider:   p.host.ID().String(),
 		Payload:    *l,
 		Signature:  nil,

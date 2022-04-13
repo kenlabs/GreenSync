@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/node/bindnode"
-	"github.com/libp2p/go-libp2p-core/crypto"
 )
 
 type Location struct {
@@ -38,14 +37,13 @@ func (lm *LocationMeta) ToNode() (n ipld.Node, err error) {
 			err = toError(r)
 		}
 	}()
-	n = bindnode.Wrap(lm, LocationPrototype.Type()).Representation()
+	n = bindnode.Wrap(lm, LocationMetaPrototype.Type()).Representation()
 	return
 }
 
 // ToNode converts this metadata to its representation as an IPLD typed node.
 // See: bindnode.Wrap.
 func (l *Location) ToNode() (n ipld.Node, err error) {
-	// TODO: remove the panic recovery once IPLD bindnode is stabilized.
 	defer func() {
 		if r := recover(); r != nil {
 			err = toError(r)
@@ -53,10 +51,6 @@ func (l *Location) ToNode() (n ipld.Node, err error) {
 	}()
 	n = bindnode.Wrap(l, LocationPrototype.Type()).Representation()
 	return
-}
-
-func (l *Location) ToMetaNode(previousID *ipld.Link, provider string, key crypto.PrivKey) (ipld.Node, error) {
-	return nil, nil
 }
 
 // UnwrapMetadata unwraps the given node as metadata.

@@ -1,0 +1,126 @@
+{
+  "Date": "2022-04-13T02:44:13.438Z",
+  "Epoch": 1715590,
+  "MinerLocations": [
+    {
+      "City": "Hangzhou",
+      "Country": "CN",
+      "Lat": 30.259244918823242,
+      "Long": 120.21937561035156,
+      "Miner": "f01012",
+      "NumLocations": 2,
+      "Region": "AS-CN-EAST-ZJ",
+      "SubDiv1": ""
+    },
+    {
+      "City": "",
+      "Country": "HK",
+      "Lat": 22.25779914855957,
+      "Long": 114.16570281982422,
+      "Miner": "f01012",
+      "NumLocations": 2,
+      "Region": "AS-HK",
+      "SubDiv1": ""
+    },
+    {
+      "City": "Beijing",
+      "Country": "CN",
+      "Lat": 39.91489028930664,
+      "Long": 116.40387725830078,
+      "Miner": "f01152",
+      "NumLocations": 1,
+      "Region": "AS-CN-NORTH-BJ",
+      "SubDiv1": ""
+    },
+    {
+      "City": "Alvsjo",
+      "Country": "SE",
+      "Lat": 669.27349853515625,
+      "Long": 128.010000228881836,
+      "Miner": "f01154",
+      "NumLocations": 1,
+      "Region": "EU-NORTH-XX",
+      "SubDiv1": "AB"
+    },
+    {
+      "City": "Shanghai",
+      "Country": "CN",
+      "Lat": 31.249160766601562,
+      "Long": 121.48789978027344,
+      "Miner": "f01155",
+      "NumLocations": 1,
+      "Region": "AS-CN-EAST-SH",
+      "SubDiv1": ""
+    },
+    {
+      "City": "",
+      "Country": "US",
+      "Lat": 38.65829849243164,
+      "Long": -77.24810028076172,
+      "Miner": "f01231",
+      "NumLocations": 3,
+      "Region": "NA-US-SOUTH-VA",
+      "SubDiv1": "VA"
+    },
+    {
+      "City": "Shanghai",
+      "Country": "CN",
+      "Lat": 31.249160766601562,
+      "Long": 121.48789978027344,
+      "Miner": "f01231",
+      "NumLocations": 3,
+      "Region": "AS-CN-EAST-SH",
+      "SubDiv1": ""
+    },
+    {
+      "City": "Shanghai",
+      "Country": "CN",
+      "Lat": 31.235929489135742,
+      "Long": 121.48053741455078,
+      "Miner": "f01231",
+      "NumLocations": 3,
+      "Region": "AS-CN-XX",
+      "SubDiv1": ""
+    },
+    {
+      "City": "",
+      "Country": "BE",
+      "Lat": 50.85089874267578,
+      "Long": 4.344699859619141,
+      "Miner": "f01234",
+      "NumLocations": 1,
+      "Region": "EU-WEST-BE",
+      "SubDiv1": ""
+    },
+    {
+      "City": "",
+      "Country": "SG",
+      "Lat": 1.367300033569336,
+      "Long": 103.80139923095703,
+      "Miner": "f01235",
+      "NumLocations": 1,
+      "Region": "AS-SG",
+      "SubDiv1": ""
+    },
+    {
+      "City": "Hanoi",
+      "Country": "VN",
+      "Lat": 21.031299591064452,
+      "Long": 105.85160064697266,
+      "Miner": "f01238",
+      "NumLocations": 1,
+      "Region": "AS-XX",
+      "SubDiv1": "HN"
+    },
+    {
+      "City": "",
+      "Country": "NL",
+      "Lat": 52.38240051269531,
+      "Long": 4.899499893188477,
+      "Miner": "f01240",
+      "NumLocations": 1,
+      "Region": "EU-WEST-NL",
+      "SubDiv1": ""
+    }
+  ]
+}
