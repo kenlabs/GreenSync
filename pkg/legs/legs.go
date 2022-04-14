@@ -1,6 +1,7 @@
 package legs
 
 import (
+	"PandoWatch/pkg/config"
 	"PandoWatch/pkg/linksystem"
 	"PandoWatch/pkg/types/schema/location"
 	"PandoWatch/pkg/util"
@@ -15,25 +16,19 @@ import (
 	"github.com/ipld/go-ipld-prime"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
-	ma "github.com/multiformats/go-multiaddr"
 )
 
 var log = logging.Logger("ProviderLegs")
 
 var LatestMetaKey = datastore.NewKey("/latestMetaKey")
 
-type PandoInfo struct {
-	PandoMultiAddr ma.Multiaddr
-	PandoPeerID    peer.ID
-	Topic          string
-}
-
 type ProviderLegs struct {
 	Publisher  legs.Publisher
 	Ds         datastore.Batching
 	host       host.Host
-	PandoInfo  *PandoInfo
+	PandoInfo  *config.PandoInfo
 	latestMeta cid.Cid
 	lsys       *ipld.LinkSystem
 	taskQueue  chan cid.Cid
@@ -41,7 +36,7 @@ type ProviderLegs struct {
 	cncl       context.CancelFunc
 }
 
-func New(ctx context.Context, pinfo *PandoInfo, h host.Host, ds datastore.Batching, lsys *ipld.LinkSystem) (*ProviderLegs, error) {
+func New(ctx context.Context, pinfo *config.PandoInfo, h host.Host, ds datastore.Batching, lsys *ipld.LinkSystem) (*ProviderLegs, error) {
 	dstore := dssync.MutexWrap(ds)
 	legsPublisher, err := dtsync.NewPublisher(h, dstore, *lsys, pinfo.Topic)
 	var latestMetaCid cid.Cid
@@ -77,15 +72,24 @@ func New(ctx context.Context, pinfo *PandoInfo, h host.Host, ds datastore.Batchi
 	return p, nil
 }
 
-func initWithPando(pinfo *PandoInfo, h host.Host) error {
-	multiAddress := pinfo.PandoMultiAddr.String() + "/ipfs/" + pinfo.PandoPeerID.String()
-	peerInfo, err := peer.AddrInfoFromString(multiAddress)
+func initWithPando(pinfo *config.PandoInfo, h host.Host) error {
+	peerID, err := peer.Decode(pinfo.PandoPeerID)
 	if err != nil {
 		return err
 	}
-	if err = h.Connect(context.Background(), *peerInfo); err != nil {
-		return err
+
+	connections := h.Network().Connectedness(peerID)
+	if connections != network.Connected {
+		peerInfo, err := pinfo.AddrInfo()
+		if err != nil {
+			return err
+		}
+		if err = h.Connect(context.Background(), *peerInfo); err != nil {
+			log.Errorf("failed to connect with Pando libp2p host, err:%v", err)
+			return err
+		}
 	}
+	h.ConnManager().Protect(peerID, "PANDO")
 	return nil
 }
 
@@ -94,11 +98,11 @@ func (p *ProviderLegs) Start() {
 		select {
 		case _ = <-p.ctx.Done():
 			log.Info("close gracefully.")
-			break
+			return
 		case c, ok := <-p.taskQueue:
 			if !ok {
-				log.Errorf("task queue is closed, quit....")
-				break
+				log.Warn("task queue is closed, quit....")
+				return
 			}
 			err := p.UpdateLocationToPando(c)
 			if err != nil {
@@ -110,7 +114,6 @@ func (p *ProviderLegs) Start() {
 }
 
 func (p *ProviderLegs) Close() error {
-	close(p.taskQueue)
 	p.cncl()
 	return p.Publisher.Close()
 }
@@ -131,8 +134,14 @@ func (p *ProviderLegs) UpdateLocationToPando(c cid.Cid) error {
 		return nil
 	}
 	link := ipld.Link(cidlink.Link{Cid: p.latestMeta})
+	var previousID *ipld.Link
+	if p.latestMeta.Equals(cid.Undef) {
+		previousID = nil
+	} else {
+		previousID = &link
+	}
 	meta := &location.LocationMeta{
-		PreviousID: &link,
+		PreviousID: previousID,
 		Provider:   p.host.ID().String(),
 		Payload:    *l,
 		Signature:  nil,

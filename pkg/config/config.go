@@ -11,9 +11,10 @@ import (
 
 // Config is used to load config files.
 type Config struct {
-	Identity  Identity
-	Datastore Datastore
-	//Ingest         Ingest
+	Identity       Identity
+	Datastore      Datastore
+	Bootstrap      Bootstrap
+	PandoInfo      PandoInfo
 	ProviderServer ProviderServer
 }
 

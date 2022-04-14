@@ -111,6 +111,7 @@ func (m *Monitor) GenerateAndUpdate(ctx context.Context, l *location.Location) {
 }
 
 func (m *Monitor) Close() error {
+	close(m.taskCh)
 	m.cncl()
 	return nil
 }

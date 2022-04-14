@@ -20,8 +20,11 @@ func Init(out io.Writer) (*Config, error) {
 
 func InitWithIdentity(identity Identity) (*Config, error) {
 	return &Config{
-		Identity:  identity,
-		Datastore: NewDatastore(),
+		Identity:       identity,
+		Bootstrap:      NewBootstrap(),
+		ProviderServer: NewProviderServer(),
+		PandoInfo:      NewPandoInfo(),
+		Datastore:      NewDatastore(),
 	}, nil
 }
 

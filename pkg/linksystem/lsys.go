@@ -47,14 +47,17 @@ func MkLinkSystem(bs blockstore.Blockstore) *ipld.LinkSystem {
 			}
 			if IsLocation(n) {
 				log.Infow("Received Location")
-				block, err := blocks.NewBlockWithCid(origBuf, c)
-				if err != nil {
-					return err
-				}
-				return bs.Put(lctx.Ctx, block)
+			} else if IsLocationMeta(n) {
+				log.Infow("Received LocationMeta")
+			} else {
+				log.Debug("Received unexpected IPLD node, skip")
+				return nil
 			}
-			log.Debug("Received unexpected IPLD node, skip")
-			return nil
+			block, err := blocks.NewBlockWithCid(origBuf, c)
+			if err != nil {
+				return err
+			}
+			return bs.Put(lctx.Ctx, block)
 		}, nil
 	}
 	return &lsys
@@ -82,4 +85,13 @@ func IsLocation(n ipld.Node) bool {
 	Epoch, _ := n.LookupByString("Epoch")
 	MinerLocations, _ := n.LookupByString("MinerLocations")
 	return Date != nil && Epoch != nil && MinerLocations != nil
+}
+
+func IsLocationMeta(n ipld.Node) bool {
+	p, _ := n.LookupByString("PreviousID")
+	provider, _ := n.LookupByString("Provider")
+	payload, _ := n.LookupByString("Payload")
+	signature, _ := n.LookupByString("Signature")
+	return provider != nil && payload != nil && signature != nil && p != nil
+
 }

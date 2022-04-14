@@ -38,7 +38,7 @@ func (lm *LocationMeta) ToNode() (n ipld.Node, err error) {
 			err = toError(r)
 		}
 	}()
-	n = bindnode.Wrap(lm, LocationPrototype.Type()).Representation()
+	n = bindnode.Wrap(lm, LocationMetaPrototype.Type()).Representation()
 	return
 }
 

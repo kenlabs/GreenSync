@@ -10,11 +10,10 @@ import (
 	"fmt"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	blockstore "github.com/ipfs/go-ipfs-blockstore"
+	"github.com/ipfs/go-ipfs/core/bootstrap"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/urfave/cli/v2"
 	"os"
 	"time"
@@ -53,7 +52,7 @@ func daemonCommand(cctx *cli.Context) error {
 		return fmt.Errorf("cannot load config file: %w", err)
 	}
 
-	_, privKey, err := cfg.Identity.Decode()
+	peerID, privKey, err := cfg.Identity.Decode()
 	if err != nil {
 		return err
 	}
@@ -92,15 +91,7 @@ func daemonCommand(cctx *cli.Context) error {
 	bstore := blockstore.NewBlockstore(ds)
 	linkSystem := linksystem.MkLinkSystem(bstore)
 
-	p, err := peer.Decode("12D3KooWDfuqc2DEUHZq8qUtpbM2o5NF8YZ69dZ8RYkNytAiDbJJ")
-	if err != nil {
-		return err
-	}
-	legsProvider, err := legs.New(context.Background(), &legs.PandoInfo{
-		PandoMultiAddr: ma.StringCast("/ip4/127.0.0.1/tcp/9002"),
-		PandoPeerID:    p,
-		Topic:          "/pando/v0.0.1",
-	}, h, ds, linkSystem)
+	legsProvider, err := legs.New(context.Background(), &cfg.PandoInfo, h, ds, linkSystem)
 	if err != nil {
 		return err
 	}
@@ -111,6 +102,23 @@ func daemonCommand(cctx *cli.Context) error {
 		ds)
 	if err != nil {
 		return err
+	}
+	// If there are bootstrap peers and bootstrapping is enabled, then try to
+	// connect to the minimum set of peers.
+	if len(cfg.Bootstrap.Peers) != 0 && cfg.Bootstrap.MinimumPeers != 0 {
+		addrs, err := cfg.Bootstrap.PeerAddrs()
+		if err != nil {
+			return fmt.Errorf("bad bootstrap peer: %s", err)
+		}
+
+		bootCfg := bootstrap.BootstrapConfigWithPeers(addrs)
+		bootCfg.MinPeerThreshold = cfg.Bootstrap.MinimumPeers
+
+		bootstrapper, err := bootstrap.Bootstrap(peerID, h, nil, bootCfg)
+		if err != nil {
+			return fmt.Errorf("bootstrap failed: %s", err)
+		}
+		defer bootstrapper.Close()
 	}
 
 	var finalErr error
