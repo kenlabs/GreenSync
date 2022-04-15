@@ -7,7 +7,7 @@ var daemonFlags = []cli.Flag{
 		Name:     "log-level",
 		Usage:    "Set the log level",
 		EnvVars:  []string{"GOLOG_LOG_LEVEL"},
-		Value:    "debug",
+		Value:    "info",
 		Required: false,
 	},
 }

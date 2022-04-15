@@ -1,7 +1,7 @@
 package util
 
 import (
-	"PandoWatch/pkg/types/schema/location"
+	"GreenSync/pkg/types/schema/location"
 	"bytes"
 	"errors"
 	"fmt"

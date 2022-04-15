@@ -38,7 +38,7 @@ func run() int {
 
 	app := &cli.App{
 		Name:    "provider",
-		Usage:   "Pando Provider Implementation",
+		Usage:   "GreenSync Implementation",
 		Version: version,
 		Commands: []*cli.Command{
 			DaemonCmd,

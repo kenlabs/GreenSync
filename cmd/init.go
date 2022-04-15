@@ -1,13 +1,13 @@
 package main
 
 import (
-	"PandoWatch/pkg/config"
+	"GreenSync/pkg/config"
 	"github.com/urfave/cli/v2"
 )
 
 var InitCmd = &cli.Command{
 	Name:   "init",
-	Usage:  "Initialize pando provider config file and identity",
+	Usage:  "Initialize GreenSync config file and identity",
 	Flags:  initFlags,
 	Action: initCommand,
 }

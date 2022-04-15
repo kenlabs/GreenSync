@@ -23,6 +23,8 @@ import (
 //
 //}
 
+const kenlbasInfoUrl = "https://pando-api.kencloud.com/pando/info"
+
 type httpRes struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -52,7 +54,7 @@ func (pinfo *PandoInfo) AddrInfo() (*peer.AddrInfo, error) {
 }
 
 func getPandoInfoFromKenLabs() (*PandoInfo, error) {
-	res, err := http.Get("https://pando-api.kencloud.com/pando/info")
+	res, err := http.Get(kenlbasInfoUrl)
 	if err != nil {
 		return nil, err
 	}

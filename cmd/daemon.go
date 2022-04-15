@@ -1,10 +1,10 @@
 package main
 
 import (
-	"PandoWatch/pkg/config"
-	"PandoWatch/pkg/legs"
-	"PandoWatch/pkg/linksystem"
-	"PandoWatch/pkg/monitor"
+	"GreenSync/pkg/config"
+	"GreenSync/pkg/legs"
+	"GreenSync/pkg/linksystem"
+	"GreenSync/pkg/monitor"
 	"context"
 	"errors"
 	"fmt"
@@ -33,7 +33,7 @@ var log = logging.Logger("command/pando-provider")
 
 var DaemonCmd = &cli.Command{
 	Name:   "daemon",
-	Usage:  "Starts a pando provider",
+	Usage:  "Starts GreenSync",
 	Flags:  daemonFlags,
 	Action: daemonCommand,
 }
@@ -47,7 +47,7 @@ func daemonCommand(cctx *cli.Context) error {
 	cfg, err := config.Load("")
 	if err != nil {
 		if err == config.ErrNotInitialized {
-			return errors.New("pando provider is not initialized\nTo initialize, run using the \"init\" command")
+			return errors.New("GreenSync is not initialized\nTo initialize, run using the \"init\" command")
 		}
 		return fmt.Errorf("cannot load config file: %w", err)
 	}
@@ -96,7 +96,7 @@ func daemonCommand(cctx *cli.Context) error {
 		return err
 	}
 	m, err := monitor.New(context.Background(),
-		"https://hub.textile.io/thread/bafkwblbznyqkmqx5l677z3kjsslhxo2vbbqh6wluunvvdbmqattrdya/buckets/bafzbeibjg7kky45npdwnogui5ffla7dint62xpttvvlzrsbewlrfmbusya/miner-locations-latest.json",
+		&cfg.GreenInfo,
 		linkSystem,
 		legsProvider.GetTaskQueue(),
 		ds)

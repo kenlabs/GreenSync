@@ -15,6 +15,7 @@ type Config struct {
 	Datastore      Datastore
 	Bootstrap      Bootstrap
 	PandoInfo      PandoInfo
+	GreenInfo      GreenInfo
 	ProviderServer ProviderServer
 }
 
@@ -98,6 +99,10 @@ func Load(filePath string) (*Config, error) {
 
 	// Replace any zero-values with defaults.
 	cfg.PopulateDefaults()
+	err = cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
 
 	return &cfg, nil
 }
@@ -143,4 +148,9 @@ func (c *Config) String() string {
 func (c *Config) PopulateDefaults() {
 	c.Datastore.PopulateDefaults()
 	c.ProviderServer.PopulateDefaults()
+}
+
+func (c *Config) Validate() error {
+	// todo add other validations
+	return c.GreenInfo.Validate()
 }

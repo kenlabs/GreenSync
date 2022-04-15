@@ -1,4 +1,4 @@
-module PandoWatch
+module GreenSync
 
 go 1.17
 

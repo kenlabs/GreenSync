@@ -1,7 +1,8 @@
 package monitor
 
 import (
-	"PandoWatch/pkg/types/schema/location"
+	"GreenSync/pkg/config"
+	"GreenSync/pkg/types/schema/location"
 	"context"
 	"encoding/json"
 	"github.com/ipfs/go-cid"
@@ -21,37 +22,30 @@ const (
 var log = logging.Logger("monitor")
 
 type Monitor struct {
-	Url    string
-	Epoch  uint64
-	DS     datastore.Batching
-	lsys   *ipld.LinkSystem
-	taskCh chan cid.Cid
-	ctx    context.Context
-	cncl   context.CancelFunc
+	Epoch     uint64
+	DS        datastore.Batching
+	lsys      *ipld.LinkSystem
+	greenInfo *config.GreenInfo
+	taskCh    chan cid.Cid
+	ctx       context.Context
+	cncl      context.CancelFunc
 }
 
-func New(ctx context.Context, url string, lsys *ipld.LinkSystem, taskCh chan cid.Cid, ds datastore.Batching) (*Monitor, error) {
-	var epoch uint64
-	epochBytes, err := ds.Get(context.Background(), datastore.NewKey(EpochKey))
-	if err == nil {
-		epoch, err = strconv.ParseUint(string(epochBytes), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	} else if err != datastore.ErrNotFound {
-		return nil, err
+func New(ctx context.Context, greenInfo *config.GreenInfo, lsys *ipld.LinkSystem, taskCh chan cid.Cid, ds datastore.Batching) (*Monitor, error) {
+	cctx, cncl := context.WithCancel(ctx)
+	m := &Monitor{
+		greenInfo: greenInfo,
+		DS:        ds,
+		lsys:      lsys,
+		taskCh:    taskCh,
+		ctx:       cctx,
+		cncl:      cncl,
 	}
 
-	cctx, cncl := context.WithCancel(ctx)
-
-	m := &Monitor{
-		Url:    url,
-		Epoch:  epoch,
-		DS:     ds,
-		lsys:   lsys,
-		taskCh: taskCh,
-		ctx:    cctx,
-		cncl:   cncl,
+	err := m.init()
+	if err != nil {
+		log.Errorf("failed to initlize monitor, err:%v", err)
+		return nil, err
 	}
 
 	go m.monitor()
@@ -59,8 +53,29 @@ func New(ctx context.Context, url string, lsys *ipld.LinkSystem, taskCh chan cid
 	return m, nil
 }
 
+func (m *Monitor) init() error {
+	var epoch uint64
+	epochBytes, err := m.DS.Get(context.Background(), datastore.NewKey(EpochKey))
+	if err == nil {
+		epoch, err = strconv.ParseUint(string(epochBytes), 10, 64)
+		if err != nil {
+			return err
+		}
+	} else if err != datastore.ErrNotFound {
+		return err
+	}
+	m.Epoch = epoch
+	return nil
+}
+
 func (m *Monitor) monitor() {
-	interval := time.Second
+	interval, err := time.ParseDuration(m.greenInfo.CheckInterval)
+	if err != nil {
+		log.Errorf("valid check interval, err: %v", err)
+		m.Close()
+		return
+	}
+
 	for range time.NewTicker(interval).C {
 		select {
 		case _ = <-m.ctx.Done():
@@ -69,7 +84,7 @@ func (m *Monitor) monitor() {
 		default:
 		}
 
-		res, err := http.Get(m.Url)
+		res, err := http.Get(m.greenInfo.Url)
 		if err != nil {
 			log.Errorf("failed to get json from http, err: %v", err)
 			continue
@@ -84,14 +99,15 @@ func (m *Monitor) monitor() {
 			log.Errorf("failed to read json from http body, err: %v", err)
 			continue
 		}
+		_ = res.Body.Close()
 		if locationRes.Epoch == m.Epoch && m.Epoch != 0 {
 			continue
 		}
-		m.GenerateAndUpdate(m.ctx, &locationRes)
+		m.generateAndUpdate(m.ctx, &locationRes)
 	}
 }
 
-func (m *Monitor) GenerateAndUpdate(ctx context.Context, l *location.Location) {
+func (m *Monitor) generateAndUpdate(ctx context.Context, l *location.Location) {
 	lnode, err := l.ToNode()
 	if err != nil {
 		log.Errorf("failed to marshal Location to ipld node, err: %v", err)

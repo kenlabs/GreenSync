@@ -24,6 +24,7 @@ func InitWithIdentity(identity Identity) (*Config, error) {
 		Bootstrap:      NewBootstrap(),
 		ProviderServer: NewProviderServer(),
 		PandoInfo:      NewPandoInfo(),
+		GreenInfo:      NewGreenInfo(),
 		Datastore:      NewDatastore(),
 	}, nil
 }

@@ -1,10 +1,10 @@
 package legs
 
 import (
-	"PandoWatch/pkg/config"
-	"PandoWatch/pkg/linksystem"
-	"PandoWatch/pkg/types/schema/location"
-	"PandoWatch/pkg/util"
+	"GreenSync/pkg/config"
+	"GreenSync/pkg/linksystem"
+	"GreenSync/pkg/types/schema/location"
+	"GreenSync/pkg/util"
 	"context"
 	"fmt"
 	"github.com/filecoin-project/go-legs"
