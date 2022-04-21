@@ -17,7 +17,7 @@ var (
 	LinkProto = cidlink.LinkPrototype{
 		Prefix: cid.Prefix{
 			Version:  1,
-			Codec:    uint64(multicodec.DagJson),
+			Codec:    uint64(multicodec.DagCbor),
 			MhType:   uint64(multicodec.Sha2_256),
 			MhLength: 16,
 		},

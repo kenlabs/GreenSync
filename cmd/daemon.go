@@ -40,6 +40,9 @@ var DaemonCmd = &cli.Command{
 
 func daemonCommand(cctx *cli.Context) error {
 	err := logging.SetLogLevel("*", cctx.String("log-level"))
+	_ = logging.SetLogLevel("graphsync", "warn")
+	_ = logging.SetLogLevel("dt_graphsync", "warn")
+	_ = logging.SetLogLevel("dt-impl", "warn")
 	if err != nil {
 		return err
 	}
