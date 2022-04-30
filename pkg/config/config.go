@@ -16,6 +16,7 @@ type Config struct {
 	Bootstrap      Bootstrap
 	PandoInfo      PandoInfo
 	GreenInfo      GreenInfo
+	IngestCfg      IngestCfg
 	ProviderServer ProviderServer
 }
 
@@ -152,5 +153,13 @@ func (c *Config) PopulateDefaults() {
 
 func (c *Config) Validate() error {
 	// todo add other validations
-	return c.GreenInfo.Validate()
+	err := c.GreenInfo.Validate()
+	if err != nil {
+		return err
+	}
+	err = c.IngestCfg.Validate()
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -27,15 +27,17 @@ type Monitor struct {
 	DS        datastore.Batching
 	lsys      *ipld.LinkSystem
 	greenInfo *config.GreenInfo
+	syncCfg   *config.IngestCfg
 	taskCh    chan cid.Cid
 	ctx       context.Context
 	cncl      context.CancelFunc
 }
 
-func New(ctx context.Context, greenInfo *config.GreenInfo, lsys *ipld.LinkSystem, taskCh chan cid.Cid, ds datastore.Batching) (*Monitor, error) {
+func New(ctx context.Context, greenInfo *config.GreenInfo, syncCfg *config.IngestCfg, lsys *ipld.LinkSystem, taskCh chan cid.Cid, ds datastore.Batching) (*Monitor, error) {
 	cctx, cncl := context.WithCancel(ctx)
 	m := &Monitor{
 		greenInfo: greenInfo,
+		syncCfg:   syncCfg,
 		DS:        ds,
 		lsys:      lsys,
 		taskCh:    taskCh,
@@ -66,7 +68,7 @@ func (m *Monitor) init() error {
 }
 
 func (m *Monitor) monitor() {
-	interval, err := time.ParseDuration(m.greenInfo.CheckInterval)
+	interval, err := time.ParseDuration(m.syncCfg.CrawlInterval)
 	if err != nil {
 		log.Errorf("valid check interval, err: %v", err)
 		m.Close()
