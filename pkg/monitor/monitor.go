@@ -4,14 +4,15 @@ import (
 	"GreenSync/pkg/config"
 	"GreenSync/pkg/types/schema/location"
 	"context"
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipld/go-ipld-prime"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -26,15 +27,17 @@ type Monitor struct {
 	DS        datastore.Batching
 	lsys      *ipld.LinkSystem
 	greenInfo *config.GreenInfo
+	syncCfg   *config.IngestCfg
 	taskCh    chan cid.Cid
 	ctx       context.Context
 	cncl      context.CancelFunc
 }
 
-func New(ctx context.Context, greenInfo *config.GreenInfo, lsys *ipld.LinkSystem, taskCh chan cid.Cid, ds datastore.Batching) (*Monitor, error) {
+func New(ctx context.Context, greenInfo *config.GreenInfo, syncCfg *config.IngestCfg, lsys *ipld.LinkSystem, taskCh chan cid.Cid, ds datastore.Batching) (*Monitor, error) {
 	cctx, cncl := context.WithCancel(ctx)
 	m := &Monitor{
 		greenInfo: greenInfo,
+		syncCfg:   syncCfg,
 		DS:        ds,
 		lsys:      lsys,
 		taskCh:    taskCh,
@@ -54,22 +57,18 @@ func New(ctx context.Context, greenInfo *config.GreenInfo, lsys *ipld.LinkSystem
 }
 
 func (m *Monitor) init() error {
-	var epoch uint64
 	epochBytes, err := m.DS.Get(context.Background(), datastore.NewKey(EpochKey))
 	if err == nil {
-		epoch, err = strconv.ParseUint(string(epochBytes), 10, 64)
-		if err != nil {
-			return err
-		}
+		m.Epoch = binary.BigEndian.Uint64(epochBytes)
+		log.Infof("load the epoch: %v", m.Epoch)
 	} else if err != datastore.ErrNotFound {
 		return err
 	}
-	m.Epoch = epoch
 	return nil
 }
 
 func (m *Monitor) monitor() {
-	interval, err := time.ParseDuration(m.greenInfo.CheckInterval)
+	interval, err := time.ParseDuration(m.syncCfg.CrawlInterval)
 	if err != nil {
 		log.Errorf("valid check interval, err: %v", err)
 		m.Close()
@@ -103,27 +102,51 @@ func (m *Monitor) monitor() {
 		if locationRes.Epoch == m.Epoch && m.Epoch != 0 {
 			continue
 		}
-		m.generateAndUpdate(m.ctx, &locationRes)
+		err = m.generateAndUpdate(m.ctx, &locationRes)
+		if err != nil {
+			log.Errorf("some errors happened while generating IPLD node and update to Pando, err: %v", err)
+			continue
+		}
+		_ = m.updateEpoch(m.ctx, locationRes.Epoch)
 	}
 }
 
-func (m *Monitor) generateAndUpdate(ctx context.Context, l *location.Location) {
+func (m *Monitor) generateAndUpdate(ctx context.Context, l *location.Location) error {
 	lnode, err := l.ToNode()
 	if err != nil {
 		log.Errorf("failed to marshal Location to ipld node, err: %v", err)
+		return err
 	}
 	link, err := m.lsys.Store(ipld.LinkContext{}, location.LinkProto, lnode)
 	if err != nil {
 		log.Errorf("failed to save Location, err: %s", err)
-		return
+		return err
 	}
 	select {
+	case _ = <-ctx.Done():
+		log.Info("context is closed, quit....")
+		return nil
 	case m.taskCh <- link.(cidlink.Link).Cid:
 		log.Infof("push cid: %s to legs", link.(cidlink.Link).Cid.String())
 	default:
 		log.Errorf("failed to send Location cid to legs")
+		return fmt.Errorf("failed to send Location cid to legs")
 	}
+	return nil
+}
 
+func (m *Monitor) updateEpoch(ctx context.Context, epoch uint64) error {
+	if m.Epoch == epoch {
+		return fmt.Errorf("don't need update")
+	}
+	m.Epoch = epoch
+	ebytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(ebytes, epoch)
+	err := m.DS.Put(ctx, datastore.NewKey(EpochKey), ebytes)
+	if err != nil {
+		log.Errorf("failed to update epoch in datastore: %v", err)
+	}
+	return nil
 }
 
 func (m *Monitor) Close() error {

@@ -23,7 +23,10 @@ import (
 //
 //}
 
-const kenlbasInfoUrl = "https://pando-api.kencloud.com/pando/info"
+const (
+	kenlbasInfoUrl = "https://pando-api.kencloud.com/pando/info"
+	pandoAPIUrl    = "https://pando-api.kencloud.com"
+)
 
 type httpRes struct {
 	Code    int    `json:"code"`
@@ -41,6 +44,7 @@ type httpRes struct {
 type PandoInfo struct {
 	PandoMultiAddr string
 	PandoPeerID    string
+	PandoAPIUrl    string
 	Topic          string
 }
 
@@ -69,6 +73,7 @@ func getPandoInfoFromKenLabs() (*PandoInfo, error) {
 	return &PandoInfo{
 		PandoMultiAddr: pinfo.Data.APIAddresses.GRAPHSYNC_API,
 		PandoPeerID:    pinfo.Data.PeerID,
+		PandoAPIUrl:    pandoAPIUrl,
 		Topic:          "/pando/v0.0.1",
 	}, nil
 }

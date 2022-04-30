@@ -8,12 +8,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	dssync "github.com/ipfs/go-datastore/sync"
 	leveldb "github.com/ipfs/go-ds-leveldb"
 	blockstore "github.com/ipfs/go-ipfs-blockstore"
 	"github.com/ipfs/go-ipfs/core/bootstrap"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/urfave/cli/v2"
 	"os"
 	"time"
@@ -40,6 +40,9 @@ var DaemonCmd = &cli.Command{
 
 func daemonCommand(cctx *cli.Context) error {
 	err := logging.SetLogLevel("*", cctx.String("log-level"))
+	_ = logging.SetLogLevel("graphsync", "warn")
+	_ = logging.SetLogLevel("dt_graphsync", "warn")
+	_ = logging.SetLogLevel("dt-impl", "warn")
 	if err != nil {
 		return err
 	}
@@ -57,20 +60,20 @@ func daemonCommand(cctx *cli.Context) error {
 		return err
 	}
 
-	p2pmaddr, err := multiaddr.NewMultiaddr(cfg.ProviderServer.ListenMultiaddr)
-	if err != nil {
-		return fmt.Errorf("bad p2p address in config %s: %s", cfg.ProviderServer.ListenMultiaddr, err)
-	}
+	//p2pmaddr, err := multiaddr.NewMultiaddr(cfg.ProviderServer.ListenMultiaddr)
+	//if err != nil {
+	//	return fmt.Errorf("bad p2p address in config %s: %s", cfg.ProviderServer.ListenMultiaddr, err)
+	//}
 	h, err := libp2p.New(
 		// Use the keypair generated during init
 		libp2p.Identity(privKey),
 		// Listen to p2p addr specified in config
-		libp2p.ListenAddrs(p2pmaddr),
+		//libp2p.ListenAddrs(p2pmaddr),
 	)
 	if err != nil {
 		return err
 	}
-	log.Infow("libp2p host initialized", "host_id", h.ID(), "multiaddr", p2pmaddr)
+	//log.Infow("libp2p host initialized", "host_id", h.ID(), "multiaddr", p2pmaddr)
 
 	// Initialize datastore
 	if cfg.Datastore.Type != "levelds" {
@@ -88,18 +91,20 @@ func daemonCommand(cctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	bstore := blockstore.NewBlockstore(ds)
+	mds := dssync.MutexWrap(ds)
+	bstore := blockstore.NewBlockstore(mds)
 	linkSystem := linksystem.MkLinkSystem(bstore)
 
-	legsProvider, err := legs.New(context.Background(), &cfg.PandoInfo, h, ds, linkSystem)
+	legsProvider, err := legs.New(context.Background(), &cfg.PandoInfo, &cfg.IngestCfg, h, mds, linkSystem)
 	if err != nil {
 		return err
 	}
 	m, err := monitor.New(context.Background(),
 		&cfg.GreenInfo,
+		&cfg.IngestCfg,
 		linkSystem,
 		legsProvider.GetTaskQueue(),
-		ds)
+		mds)
 	if err != nil {
 		return err
 	}
@@ -148,7 +153,7 @@ func daemonCommand(cctx *cli.Context) error {
 		finalErr = ErrDaemonStop
 	}
 
-	if err = ds.Close(); err != nil {
+	if err = mds.Close(); err != nil {
 		log.Errorf("Error closing provider datastore: %s", err)
 		finalErr = ErrDaemonStop
 	}

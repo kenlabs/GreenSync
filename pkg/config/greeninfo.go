@@ -3,26 +3,19 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"time"
 )
 
 const (
 	defaultGreenLocationUrl = "https://hub.textile.io/thread/bafkwblbznyqkmqx5l677z3kjsslhxo2vbbqh6wluunvvdbmqattrdya/buckets/bafzbeibjg7kky45npdwnogui5ffla7dint62xpttvvlzrsbewlrfmbusya/miner-locations-latest.json"
-	defaultCheckInterval    = time.Minute
-	defaultSaveLocationData = true
 )
 
 type GreenInfo struct {
-	Url              string
-	CheckInterval    string
-	SaveLocationData bool
+	Url string
 }
 
 func NewGreenInfo() GreenInfo {
 	return GreenInfo{
-		Url:              defaultGreenLocationUrl,
-		CheckInterval:    defaultCheckInterval.String(),
-		SaveLocationData: defaultSaveLocationData,
+		Url: defaultGreenLocationUrl,
 	}
 }
 
@@ -36,11 +29,6 @@ func (gi *GreenInfo) Validate() error {
 	}
 	if gUrl.Host != "hub.textile.io" {
 		return fmt.Errorf("wrong host name, expected: hub.textile.io, got: %s", gUrl.Host)
-	}
-
-	_, err = time.ParseDuration(gi.CheckInterval)
-	if err != nil {
-		return err
 	}
 	return nil
 }
