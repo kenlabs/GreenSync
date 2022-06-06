@@ -140,9 +140,13 @@ func (p *ProviderLegs) UpdateLocationToPando(c cid.Cid) error {
 	} else {
 		previousID = &link
 	}
+	cache := true
+	collectionName := "miner-location"
 	meta := &location.LocationMeta{
 		PreviousID: previousID,
 		Provider:   p.host.ID().String(),
+		Cache:      &cache,
+		Collection: &collectionName,
 		Payload:    *l,
 		Signature:  nil,
 	}

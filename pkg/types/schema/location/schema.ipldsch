@@ -20,6 +20,9 @@ type LocationMeta struct {
 	PreviousID nullable Link_Metadata
     # Provider ID of the metadata
     Provider String
+    # Cache for data search
+    Cache  optional Bool
+    Collection  optional String
 	# data
 	Payload   Location
 	# metadata signature.

@@ -28,6 +28,8 @@ type MinerLocation struct {
 type LocationMeta struct {
 	PreviousID *ipld.Link
 	Provider   string
+	Cache      *bool
+	Collection *string
 	Payload    Location
 	Signature  []byte
 }
