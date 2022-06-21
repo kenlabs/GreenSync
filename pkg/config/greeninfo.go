@@ -34,9 +34,9 @@ func (gi *GreenInfo) Validate() error {
 	if gUrl.Scheme != "https" {
 		return fmt.Errorf("only support https, got: %s", gUrl.Scheme)
 	}
-	if gUrl.Host != "hub.textile.io" {
-		return fmt.Errorf("wrong host name, expected: hub.textile.io, got: %s", gUrl.Host)
-	}
+	//if gUrl.Host != "hub.textile.io" {
+	//	return fmt.Errorf("wrong host name, expected: hub.textile.io, got: %s", gUrl.Host)
+	//}
 
 	_, err = time.ParseDuration(gi.CheckInterval)
 	if err != nil {
