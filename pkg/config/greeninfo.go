@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	defaultGreenLocationUrl = "https://hub.textile.io/thread/bafkwblbznyqkmqx5l677z3kjsslhxo2vbbqh6wluunvvdbmqattrdya/buckets/bafzbeibjg7kky45npdwnogui5ffla7dint62xpttvvlzrsbewlrfmbusya/miner-locations-latest.json"
+	defaultGreenLocationUrl = "https://provider-quest.s3.us-west-2.amazonaws.com/dist/geoip-lookups/miner-locations-latest.json"
 	defaultCheckInterval    = time.Minute
 	defaultSaveLocationData = true
 )
