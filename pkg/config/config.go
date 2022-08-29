@@ -21,7 +21,7 @@ type Config struct {
 
 const (
 	// DefaultPathName is the default config dir name.
-	DefaultPathName = ".pando-provider"
+	DefaultPathName = ".Greensync"
 	// DefaultPathRoot is the path to the default config dir location.
 	DefaultPathRoot = "~/" + DefaultPathName
 	// DefaultConfigFile is the filename of the configuration file.

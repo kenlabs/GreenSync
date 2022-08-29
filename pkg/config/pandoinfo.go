@@ -7,23 +7,10 @@ import (
 	"net/http"
 )
 
-//{
-//"code": 200,
-//"message": "ok",
-//
-//"Data": {
-//"PeerID": "12D3KooWNU48MUrPEoYh77k99RbskgftfmSm3CdkonijcM5VehS9",
-//
-//"APIAddresses": {
-//"GRAPHQL_API": "/ip4/52.14.211.248/tcp/9012",
-//"GRAPHSYNC_API": "/ip4/52.14.211.248/tcp/9013",
-//"HTTP_API": "/ip4/52.14.211.248/tcp/9011"
-//}
-//}
-//
-//}
-
-const kenlbasInfoUrl = "https://pando-api.kencloud.com/pando/info"
+const (
+	kenlbasInfoUrl = "https://pando-api.kencloud.com/pando/info"
+	pandoAPIUrl    = "https://pando-api.kencloud.com"
+)
 
 type httpRes struct {
 	Code    int    `json:"code"`
@@ -31,17 +18,18 @@ type httpRes struct {
 	Data    struct {
 		PeerID       string `json:"peerID"`
 		APIAddresses struct {
-			GRAPHQL_API   string `json:"GRAPHQL_API"`
-			GRAPHSYNC_API string `json:"GRAPHSYNC_API"`
-			HTTP_API      string `json:"HTTP_API"`
-		} `json:"APIAddresses"`
+			GRAPHQL_API   string `json:"GraphQLAPI"`
+			GRAPHSYNC_API string `json:"GraphSyncAPI"`
+			HTTP_API      string `json:"HttpAPI"`
+		} `json:"Addresses"`
 	} `json:"Data"`
 }
 
 type PandoInfo struct {
 	PandoMultiAddr string
 	PandoPeerID    string
-	Topic          string
+	PandoAPIUrl    string
+	TopicName      string
 }
 
 func (pinfo *PandoInfo) AddrInfo() (*peer.AddrInfo, error) {
@@ -53,7 +41,7 @@ func (pinfo *PandoInfo) AddrInfo() (*peer.AddrInfo, error) {
 	return peerInfo, nil
 }
 
-func getPandoInfoFromKenLabs() (*PandoInfo, error) {
+func GetPandoInfo() (*PandoInfo, error) {
 	res, err := http.Get(kenlbasInfoUrl)
 	if err != nil {
 		return nil, err
@@ -69,15 +57,16 @@ func getPandoInfoFromKenLabs() (*PandoInfo, error) {
 	return &PandoInfo{
 		PandoMultiAddr: pinfo.Data.APIAddresses.GRAPHSYNC_API,
 		PandoPeerID:    pinfo.Data.PeerID,
-		Topic:          "/pando/v0.0.1",
+		PandoAPIUrl:    pandoAPIUrl,
+		TopicName:      "/pando/v0.0.1",
 	}, nil
 }
 
 func NewPandoInfo() PandoInfo {
-	pinfo, err := getPandoInfoFromKenLabs()
+	pinfo, err := GetPandoInfo()
 	if err != nil {
 		fmt.Printf("failed to get PandoInfo from Kenlabs http api...Please fill manually, err: %v", err.Error())
-		return PandoInfo{Topic: "/pando/v0.0.1"}
+		return PandoInfo{TopicName: "/pando/v0.0.1"}
 	}
 	return *pinfo
 }

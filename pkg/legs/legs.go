@@ -38,7 +38,7 @@ type ProviderLegs struct {
 
 func New(ctx context.Context, pinfo *config.PandoInfo, h host.Host, ds datastore.Batching, lsys *ipld.LinkSystem) (*ProviderLegs, error) {
 	dstore := dssync.MutexWrap(ds)
-	legsPublisher, err := dtsync.NewPublisher(h, dstore, *lsys, pinfo.Topic)
+	legsPublisher, err := dtsync.NewPublisher(h, dstore, *lsys, pinfo.TopicName)
 	var latestMetaCid cid.Cid
 	metaCid, err := dstore.Get(context.Background(), LatestMetaKey)
 	if err == nil {
